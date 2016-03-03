@@ -84,3 +84,4 @@ void test_cluster_SAO(ErrorContext &ec, unsigned int numRuns);
 void test_cluster_IO(ErrorContext &ec, unsigned int numRuns);
 
 #endif //CLUSTERING_CLUSTERINGTESTS_H
+

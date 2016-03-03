@@ -3,12 +3,16 @@
 // Created by Ivo Georgiev on 10/29/15.
 //
 
+// ClusteringTests.cpp
+//
+// Created by Ivo Georgiev on 10/29/15.
+//
+
 #include <iostream>
 #include <cassert>
 #include <iomanip>
 #include <fstream>
 #include <limits>
-
 #include "ClusteringTests.h"
 #include "Point.h"
 #include "Cluster.h"
@@ -81,9 +85,9 @@ void test_point_smoketest(ErrorContext &ec) {
 
 // id
 void test_point_id(ErrorContext &ec, unsigned int numRuns) {
-   bool pass;
+    bool pass;
 
-     //Run at least once!!
+    // Run at least once!!
     assert(numRuns > 0);
 
     ec.DESC("--- Test - Point - Point ID ---");
@@ -141,8 +145,8 @@ void test_point_getsetelem(ErrorContext &ec, unsigned int numRuns) {
             pass = true;
             for (int i = 0; i < 50; i ++) {
                 pass = pass &&
-                        (p.getValue(i) == 0.0) &&
-                        (p[i] == 0.0);
+                       (p.getValue(i) == 0.0) &&
+                       (p[i] == 0.0);
             }
             ec.result(pass);
         }
@@ -160,8 +164,8 @@ void test_point_getsetelem(ErrorContext &ec, unsigned int numRuns) {
             pass = true;
             for (int i = 0; i < 20; i ++)
                 pass = pass &&
-                        (p.getValue(i) == (13.43 * i * i + 4.567 * i + 1.234567)) &&
-                        (p[i] == (13.43 * i * i + 4.567 * i + 1.234567));
+                       (p.getValue(i) == (13.43 * i * i + 4.567 * i + 1.234567)) &&
+                       (p[i] == (13.43 * i * i + 4.567 * i + 1.234567));
             ec.result(pass);
         }
 
@@ -372,7 +376,6 @@ void test_point_comparison(ErrorContext &ec, unsigned int numRuns) {
             for (int i = 0; i < 50; i ++) {
                 p1[i] = p2[i] = p3[i] = i;
             }
-
             p2[1] = p1[1] + std::numeric_limits<double>::epsilon();
             p3[1] = p2[1] + std::numeric_limits<double>::epsilon();
 
@@ -1097,7 +1100,7 @@ void test_cluster_subscript(ErrorContext &ec, unsigned int numRuns) {
             }
 
             pass = true;
-            for (int i = 0; i < 10; i ++) {
+            for (int i = 0; i < 10; ++i) {
                 Point p1 = c[i];
                 pass = pass && (p1[5] == 3.14);
             }

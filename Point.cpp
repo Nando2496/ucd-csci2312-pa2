@@ -1,124 +1,137 @@
-#include "Point.h"
+
 #include <cmath>
-#include <algorithm>
+#include <algorithm> //min, max
+#include <string>
 #include <sstream>
 #include <iostream>
-#include <assert.h>
 
-using namespace std;
-using namespace Clustering;
+#include "Point.h"
 
-namespace Clustering
-{
+namespace Clustering {
 
+    // Static ID generator
     unsigned int Point::__idGen = 0;
 
-    Clustering::Point::Point(int i)
-    {
-        __dim = i;
+    //  Constructors
+    Point::Point(int dimensions) {
+        // Assign id and increment for next point
+        __id = __idGen;
+        ++__idGen;
+
+        // Assign dim number and create array
+        __dim = dimensions;
         __values = new double[__dim];
-        for (int count = 0; count < __dim; ++count)
-            __values[count] = 0.0;
-        __id = __idGen++;
-    }
 
-    Point::Point(int i, double *pDouble)
-    {
-        __dim = i;
-        __values = pDouble;
-        __id = __idGen++;
-    }
-
-    Point::Point(const Point &point)
-    {
-        __dim = point.__dim;
-        __values = new double[__dim];
-        for (int count = 0; count < __dim; ++count)
-            __values[count] = point.__values[count];
-        __id = point.__id;
-    }
-
-    Point &Point::operator=(const Point &point)
-    {
-        if (this == &point)
-            return *this;
-        else {
-            __dim = point.__dim;
-            for (int count = 0; count < __dim; ++count)
-                __values[count] = point.__values[count];
-            __id = point.__id;
+        for (int i = 0; i < __dim; ++i) {
+            __values[i] = 0;
         }
+    }
+
+    Point::Point(int dimensions, double *array) {
+        // Assign ID and increment for next point
+        __id = __idGen;
+        ++__idGen;
+
+        __dim = dimensions;
+        __values = new double[__dim];
+        for (int i = 0; i < __dim; ++i) {
+            __values[i] = array[i];
+        }
+    }
+
+    // Big three: cpy ctor, overloaded operator=, dtor
+    Point::Point(const Point &origin) {
+        __dim = origin.__dim;
+        __values = new double[__dim];
+        __id = origin.__id;
+
+        for (int i = 0; i < __dim; ++i) {
+            __values[i] = origin.__values[i];
+        }
+    }
+
+    Point &Point::operator=(const Point &origin) {
+        if (this != &origin) { // prevent p1 = p1
+
+            __dim = origin.__dim;
+            __id = origin.__id;
+
+            // If array was already assigned, delete first
+            if (__values != nullptr)
+                delete[] __values;
+
+            __values = new double[__dim];
+
+            for (int i = 0; i < __dim; ++i) {
+                __values[i] = origin.__values[i];
+            }
+        }
+
         return *this;
     }
 
-    Point::~Point()
-    {
-        std::cout << "This is the value " << &__values << std::endl;
-        delete[] __values;
+    Point::~Point() {
+        delete [] __values;
     }
 
     // Accessors & mutators
-    int Point::getId() const
-    {
+    int Point::getId() const {
         return __id;
     }
 
-    int Point::getDims() const
-    {
+    int Point::getDims() const {
         return __dim;
     }
 
-    void Point::setValue(int dim, double val)
-    {
+    void Point::setValue(int dim, double val) {
+
         if (dim >= 0 && dim < __dim) {
             __values[dim] = val;
         }
     }
+    double Point::getValue(int dim) const {
 
-    double Point::getValue(int dim) const
-    {
         if (dim >= 0 && dim < __dim)
             return __values[dim];
         else
             return 0;
     }
 
-    double Point::distanceTo(const Point &compPoint) const
-    {
-        if (__dim != compPoint.__dim)
-            return false; // dimenstions aren't the same, don't calculate.
 
-        double TotalProduct = 0;
-        for (int i = 0; i < __dim; ++i)
-        {
-            TotalProduct += pow(compPoint.getValue(i) - getValue(i), 2);
+    double Point::distanceTo(const Point &compPoint) const {
+
+        if (__dim != compPoint.__dim)
+            return false;   // Dimensions are not same, don't calculate
+
+        double sumOfProducts = 0;
+
+        for (int i = 0; i < __dim; ++i) {
+            sumOfProducts += pow(compPoint.getValue(i) - getValue(i), 2);
         }
-        return sqrt(TotalProduct);
+
+        return sqrt(sumOfProducts);
     }
 
-    Point &Point::operator*=(double val)
-    {
-        for (int i = 0; i < __dim; ++i)
-        {
+    // Overloaded operators
+
+    // Members
+    Point &Point::operator*=(double val) {
+        for (int i = 0; i < __dim; ++i) {
             __values[i] *= val;
         }
 
         return *this;
     }
 
-
-    Point &Point::operator/=(double val)
-    {
-        for (int i = 0; i < __dim; ++i)
-        {
+    Point &Point::operator/=(double val) {
+        for (int i = 0; i < __dim; ++i) {
             __values[i] /= val;
         }
 
         return *this;
     }
 
-    const Point Point::operator*(double val) const
-    {
+    const Point Point::operator*(double val) const {
         Point p(*this);
 
         p *= val;
@@ -126,9 +139,7 @@ namespace Clustering
         return p;
     }
 
-
-    const Point Point::operator/(double val) const
-    {
+    const Point Point::operator/(double val) const {
         Point p(*this);
 
         p /= val;
@@ -136,9 +147,10 @@ namespace Clustering
         return p;
     }
 
-
     // Read and write index
+    // WARNING: Out of bounds returns first value
     double &Point::operator[](int index) {
+        //  Prevent access out of bounds
         if (index < 0 || index >= __dim)
             index = 0;
 
@@ -147,55 +159,44 @@ namespace Clustering
 
 
     // Friends
-    Point &operator+=(Point &lhs, const Point &rhs)
-    {
-        int usedDims = max(lhs.getDims(), rhs.getDims());
+    Point &operator+=(Point &lhs, const Point &rhs) {
+        // Used dimensions is the greater of the two points
+        int usedDims = std::max(lhs.getDims(), rhs.getDims());
 
         // Resize left array if right is larger
-        if (lhs.__dim < usedDims)
-        {
-            delete[] lhs.__values;
-
+        if (lhs.__dim < usedDims) {
+            delete [] lhs.__values;
 
             lhs.__values = new double[usedDims];
         }
-
 
         // Add values of right to values of left
-        for (int i = 0; i < usedDims; ++i)
-        {
-            lhs[i] += rhs.getValue(i);      // getValue returns 0 if out of bounds
+        for (int i = 0; i < usedDims; ++i) {
+            lhs[i] += rhs.getValue(i);      // note: getValue returns 0 if out of bounds
         }
-
 
         return lhs;
     }
+    Point &operator-=(Point &lhs, const Point &rhs) {
+        // Used dimensions is the greater of the two points
+        int usedDims = std::max(lhs.getDims(), rhs.getDims());
 
-    Point &operator-=(Point &lhs, const Point &rhs)
-    {
-        int usedDims = max(lhs.getDims(), rhs.getDims());
-
-
-        if (lhs.__dim < usedDims)
-        {
-            delete[] lhs.__values;
+        // Resize left array if right is larger
+        if (lhs.__dim < usedDims) {
+            delete [] lhs.__values;
 
             lhs.__values = new double[usedDims];
         }
 
-
-        for (int i = 0; i < usedDims; ++i)
-        {
-            lhs[i] -= rhs.getValue(i);
+        // Add values of right to values of left
+        for (int i = 0; i < usedDims; ++i) {
+            lhs[i] -= rhs.getValue(i);      // note: getValue returns 0 if out of bounds
         }
-
 
         return lhs;
     }
 
-
-    const Point operator+(const Point &lhs, const Point &rhs)
-    {
+    const Point operator+(const Point &lhs, const Point &rhs) {
         Point p(lhs);
 
         p += rhs;
@@ -203,9 +204,7 @@ namespace Clustering
         return p;
     }
 
-
-    const Point operator-(const Point &lhs, const Point &rhs)
-    {
+    const Point operator-(const Point &lhs, const Point &rhs) {
         Point p(lhs);
 
         p -= rhs;
@@ -213,134 +212,89 @@ namespace Clustering
         return p;
     }
 
-
-    bool operator==(const Point &lhs, const Point &rhs)
-    {
+    bool operator==(const Point &lhs, const Point &rhs) {
         if (lhs.__id != rhs.__id)
             return false;   // ID's don't match, not the same
 
-
-        for (int i = 0; i < std::max(lhs.__dim, rhs.__dim); ++i)
-        {
+        for (int i = 0; i < std::max(lhs.__dim, rhs.__dim); ++i) {
             if (lhs.getValue(i) != rhs.getValue(i))
                 return false; // Any dimensional value doesn't match
         }
 
 
-        // ID's are the same, values are the same
         return true;
     }
 
-
-    bool operator!=(const Point &lhs, const Point &rhs)
-    {
+    bool operator!=(const Point &lhs, const Point &rhs) {
         return !(lhs == rhs);
     }
 
+    bool operator<(const Point &lhs, const Point &rhs) {
+        int usedDims = std::max(lhs.__dim, rhs.__dim);
 
-    bool operator<(const Point &lhs, const Point &rhs)
-    {
-        int usedDims = max(lhs.__dim, rhs.__dim);
-
-
-        for (int i = 0; i < usedDims; ++i)
-        {
-            if (lhs.getValue(i) != rhs.getValue(i))
-            {
+        for (int i = 0; i < usedDims; ++i) {
+            if (lhs.getValue(i) != rhs.getValue(i)) { // Inequality exists, return < comparison
                 return (lhs.getValue(i) < rhs.getValue(i));
             }
         }
 
-
-        // if all values equal, return false
+        // All values equal, return false
         return false;
     }
 
-
-    bool operator>(const Point &lhs, const Point &rhs)
-    {
+    bool operator>(const Point &lhs, const Point &rhs) {
         return (rhs < lhs);
     }
 
-
-    bool operator<=(const Point &lhs, const Point &rhs)
-    {
+    bool operator<=(const Point &lhs, const Point &rhs) {
         return !(lhs > rhs);
     }
 
-
-    bool operator>=(const Point &lhs, const Point &rhs)
-    {
+    bool operator>=(const Point &lhs, const Point &rhs) {
         return !(lhs < rhs);
     }
 
-
-    ostream &operator<<(ostream &out, const Point &p)
-    {
+    std::ostream &operator<<(std::ostream &out, const Point &p) {
         int i = 0;
-        for (; i < p.__dim - 1; ++i)
+        for ( ; i < p.__dim - 1; ++i)
             out << p.__values[i] << ", ";
-
 
         out << p.__values[i];
 
-
     }
 
+    std::istream &operator>>(std::istream &in, Point &p) {
+        std::string str;
 
-    istream &operator>>(istream &in, Point &p)
-    {
-        //std::stringstream ss;
-        string str;
-
-
-        getline(in, str);
-        int size = count(str.begin(), str.end(), ',') + 1;
+        std::getline(in, str);
+        int size = std::count(str.begin(), str.end(), ',') + 1;
 
 
-        stringstream ss(str);
+        std::stringstream ss(str);
 
 
-        if (p.getDims() != size)
-        {
-            delete[] p.__values;
-
+        if (p.getDims() != size) {
+            delete [] p.__values;
 
             p.__dim = size;
-            p.__values = new double[p.__dim];
+            p.__values = new double [p.__dim];
         }
-
 
         int index = 0;  // current dimension index of point
 
-
-
-        while (!ss.eof())
-        {
-
-            string svalue;
-
+        while (!ss.eof()) {
+            std::string svalue;
             getline(ss, svalue, ',');
 
-
-
-            stringstream streamvalue(svalue);
-
-
+            std::stringstream streamvalue(svalue);
 
             streamvalue >> p.__values[index];
 
-
-
             ++index;
-
         }
 
-
-
         return in;
-
     }
 
-
 }
+
