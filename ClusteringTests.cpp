@@ -7,6 +7,7 @@
 #include <cassert>
 #include <iomanip>
 #include <fstream>
+#include <limits>
 
 #include "ClusteringTests.h"
 #include "Point.h"
@@ -80,9 +81,9 @@ void test_point_smoketest(ErrorContext &ec) {
 
 // id
 void test_point_id(ErrorContext &ec, unsigned int numRuns) {
-    bool pass;
+   bool pass;
 
-    // Run at least once!!
+     //Run at least once!!
     assert(numRuns > 0);
 
     ec.DESC("--- Test - Point - Point ID ---");
@@ -371,6 +372,7 @@ void test_point_comparison(ErrorContext &ec, unsigned int numRuns) {
             for (int i = 0; i < 50; i ++) {
                 p1[i] = p2[i] = p3[i] = i;
             }
+
             p2[1] = p1[1] + std::numeric_limits<double>::epsilon();
             p3[1] = p2[1] + std::numeric_limits<double>::epsilon();
 
